@@ -3,7 +3,7 @@
 ---
 <div align="center" markdown="1">
 
-[![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fxristosl0610%2FPhI-SINDy&countColor=%23263759)](https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fxristosl0610%2FPhI-SINDy)
+[![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fxristosl0610%2FPhI-SINDy&countColor=%23263759&style=flat&labelStyle=lower)](https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fxristosl0610%2FPhI-SINDy)
 [![Paper](https://img.shields.io/badge/paper-available-blue)](https://doi.org/10.1007/s11071-024-09652-2)
 [![Issues](https://img.shields.io/github/issues/xristosl0610/PhI-SINDy)](https://github.com/xristosl0610/PhI-SINDy/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/xristosl0610/PhI-SINDy)](https://github.com/xristosl0610/PhI-SINDy/pulls)
