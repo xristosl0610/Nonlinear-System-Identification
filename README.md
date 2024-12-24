@@ -60,4 +60,7 @@ pip install -r requirements.txt
 </pre></details>
 
 ## Contact
-For further information, please contact xristosl0610@gmail.com
+| Name                   | Details                      |
+| ---------------------- | ---------------------------- |
+| Christos Lathourakis   | xristosl0610@gmail.com       |
+
