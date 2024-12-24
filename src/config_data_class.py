@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
-from typing import Tuple, Dict, Optional
+from dataclasses import dataclass, field, is_dataclass
+from typing import Any
+import toml
 import numpy as np
 
 
@@ -47,12 +48,33 @@ class FeaturesConfig:
         FeaturesConfig: A FeaturesConfig object with specified features configuration settings.
     """
     poly_order: int = 1
-    cos_phases: np.ndarray = field(default_factory=lambda: np.array([]))
-    sin_phases: np.ndarray = field(default_factory=lambda: np.array([]))
+    cos_phases: np.ndarray | list | tuple = ()
+    sin_phases: np.ndarray | list | tuple = ()
     x_sgn_flag: bool = False
     y_sgn_flag: bool = False
     log_1: bool = False
     log_2: bool = False
+
+
+@dataclass
+class DieterichRuinaFriction:
+    """
+    A data class representing the parameters for the Dieterich-Ruina friction model.
+
+    This class encapsulates the parameters used in the Dieterich-Ruina friction model, which describes the relationship between normal stress and frictional resistance. Each parameter can be adjusted to fit specific frictional behavior in simulations or calculations.
+
+    Args:
+        a (float): Parameter a, default is 0.07.
+        b (float): Parameter b, default is 0.09.
+        c (float): Parameter c, default is 0.022.
+        V_star (float): Characteristic velocity, default is 0.003.
+        eps (float): Small positive constant to avoid division by zero, default is 1e-1.
+    """
+    a: float = 0.07
+    b: float = 0.09
+    c: float = 0.022
+    V_star: float = 0.003
+    eps: float = 1e-1
 
 
 @dataclass
@@ -102,8 +124,8 @@ class PhysicsConfig:
     friction_model_ind: int = 1
     friction_model: str = field(init=False)
     friction_force_ratio: float = 0.5
-    DR: Dict[str, float] = field(default_factory=lambda: {'a': 0.07, 'b': 0.09, 'c': 0.022, 'V_star': 0.003, 'eps': 1e-6})
-    x0: Tuple[float, float] = (0.1, 0.1)
+    DR: DieterichRuinaFriction | None = DieterichRuinaFriction
+    x0: tuple[float, float] = (0.1, 0.1)
     true_omega: float = 1.0
     true_zeta: float = 0.05
     noisy_measure_flag: bool = True
@@ -112,6 +134,8 @@ class PhysicsConfig:
     omega_noise: float = 5e-2
     zeta_noise: float = 2e-1
     stick_tol: float = 1e-3
+    mus: (np.ndarray | None) = None
+    stds: (np.ndarray | None) = None
 
     @staticmethod
     def __post_init__():
@@ -136,6 +160,43 @@ class Config:
     hyperparams: (HyperparamsConfig | None) = HyperparamsConfig
     features: (FeaturesConfig | None) = FeaturesConfig
     physics: (PhysicsConfig | None) = PhysicsConfig
+
+
+def update_params(obj: Any, updates: dict) -> None:
+    """
+    Recursively update attributes of an object based on a dictionary.
+
+    Args:
+        obj (Any): The object whose attributes will be updated.
+        updates (dict): A dictionary containing the updates to be applied to the object's attributes.
+
+    Returns:
+        None
+    """
+    for key, value in updates.items():
+        if hasattr(obj, key):
+            attr = getattr(obj, key)
+            if is_dataclass(attr) and isinstance(value, dict):
+                update_params(attr, value)
+            else:
+                setattr(obj, key, value)
+
+
+def update_params_from_toml(params: Config, toml_file: str) -> Config:
+    """
+    Update the parameters of a Config object from a TOML file.
+
+    Args:
+        params (Config): The Config object whose parameters will be updated.
+        toml_file (str): The path to the TOML file containing parameter updates.
+
+    Returns:
+        Config: The Config object with updated parameters.
+    """
+    config_dict = toml.load(toml_file)
+    update_params(params, config_dict)
+    params.physics.__post_init__()
+    return params
 
 
 if __name__ == "__main__":

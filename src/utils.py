@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import toml
 from csv import DictWriter
 from typing import Any
 from src.config_data_class import Config
@@ -21,8 +20,10 @@ def update_params_from_toml(params: Config, toml_file: str) -> Config:
     config_dict = toml.load(toml_file)
     for key, value in config_dict.items():
         if hasattr(params, key):
-            setattr(params, key, value)
-    # params.__post_init__()
+            for kkey, vvalue in value.items():
+                if hasattr(getattr(params, key), kkey):
+                    setattr(getattr(params, key), kkey, vvalue)
+    params.physics.__post_init__()
     return params
 
 

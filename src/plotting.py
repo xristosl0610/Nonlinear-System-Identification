@@ -1,7 +1,43 @@
 import os
 import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
 import numpy as np
 from typing import Tuple
+
+
+def plot_jonswap_excitation(fs, Sigmaf, ts, eta) -> None:
+    """
+    Plot JONSWAP wave excitation based on the provided parameters.
+
+    Args:
+        fs: Frequencies for plotting.
+        Sigmaf: Spectral density values for plotting.
+        ts: Time values for plotting.
+        eta: Displacement values for plotting.
+
+    Returns:
+        None
+    """
+    _, (ax1, ax2) = plt.subplots(ncols=2, figsize=(16, 6))
+    ax1.plot(fs, Sigmaf)
+
+    ax1.set_ylabel(r"Spectral Density [m$^2$/Hz]", fontsize=24)
+    ax1.set_xlabel(r"Frequency, $f$ [Hz]", fontsize=24)
+    ax2.plot(ts, eta)
+    ax2.set_xlabel(r"$t$ [s]", fontsize=24)
+    ax2.set_ylabel(r"Displacement [m]", fontsize=24)
+
+    ax1.set_xticks(np.arange(0, 8.1, 1), np.arange(0, 8.1, 1), fontsize=20)
+    ax1.set_yticks(np.arange(0, 10.1, 2), np.arange(0, 10.1, 2), fontsize=20)
+    ax2.set_xticks(np.arange(0, 5.1, 1), np.arange(0, 5.1, 1), fontsize=20)
+    ax2.set_yticks(np.arange(-4, 4.1, 2), np.arange(-4, 4.1, 2), fontsize=20)
+
+    ax1.yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+    ax2.yaxis.set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+    ax1.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+    ax2.xaxis.set_major_formatter(StrMethodFormatter('{x:,.0f}'))
+
+    plt.show()
 
 
 def plot_results(times, exact_sol, measurements, learnt_sol, child_dir, type_flag='d', save_flag=True, figsize=(16, 8)):
