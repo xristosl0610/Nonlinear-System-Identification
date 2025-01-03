@@ -13,12 +13,15 @@ if __name__ == "__main__":
     params = Config()
     params = update_params_from_toml(params, CONFIG_OVERWRITE)
 
-    calculate_jonswap_excitation(params, plot_jonswap=True)
+    calculate_jonswap_excitation(params)
 
     ts, x_denoised = generate_data(params)
 
-    forcing = np.atleast_2d(apply_forcing(ts, params))
-    forcing_m = np.atleast_2d(apply_forcing(0.5 * (ts[:-1] + ts[1:]), params))
+    forcing = apply_forcing(ts, params)
+    forcing_m = apply_forcing(0.5 * (ts[:-1] + ts[1:]), params)
+    if len(forcing.shape) == 1:
+        forcing = np.expand_dims(forcing, axis=1)
+        forcing_m = np.expand_dims(forcing_m, axis=1)
 
     x = contaminate_measurements(params, x_denoised) if params.physics.noisy_measure_flag else x_denoised
 

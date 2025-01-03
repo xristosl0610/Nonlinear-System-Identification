@@ -111,6 +111,7 @@ def calculate_jonswap_excitation(params: Config, plot_jonswap: bool = False) -> 
 
     Args:
         params: The Config object containing parameters needed for the calculation.
+        plot_jonswap: A boolean to plot the excitation. Defaults to False.
 
     Returns:
         None
