@@ -1,16 +1,12 @@
 import numpy as np
 import torch as T
-import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+
 from src.config_data_class import Config
 from src.plotting import plot_jonswap_excitation
-from typing import Tuple
 
 
-def apply_forcing(
-    times: np.ndarray,
-    params: Config
-) -> np.ndarray:
+def apply_forcing(times: np.ndarray, params: Config) -> np.ndarray:
     """
     Returns the forcing term for the given time instances based on the specified parameters.
 
@@ -40,36 +36,28 @@ def apply_known_physics(x, params) -> (np.ndarray | T.Tensor):
     """
     A function that returns the known part (terms) of the governing equation
 
-    Parameters
-    ----------
-    x : numpy.ndarray or torch.Tensor
-        a 2D array/tensor containing the displacement in the first column and the velocity in the second one
-    params : parameters dataclass
-        the parameters of the run
-    Returns
-    -------
-    numpy.ndarray or torch.Tensor
-        an 1D array/tensor that contains known part of the governing equation
+    Args:
+        x (numpy.ndarray | torch.Tensor): A 2D array/tensor containing the displacement in the first column
+                                          and the velocity in the second one
+        params (Config): The parameters of the run
+    Returns:
+        numpy.ndarray | torch.Tensor: An 1D array/tensor that contains known part of the governing equation
     """
     return - 2 * params.physics.zeta * params.physics.omega * x[:, 1] - params.physics.omega ** 2 * x[:, 0]
 
 
-def build_true_model(x, t, params):
+def build_true_model(x: np.ndarray, t: np.ndarray, params: Config) -> np.ndarray:
     """
     A function that gets the displacement, velocity and time as an input, and returns the true vector field output (velocity and acceleration)
 
-    Parameters
-    ----------
-    x : numpy.ndarray
-        a 2D array containing the displacement in the first column and the velocity in the second one
-    t : numpy.ndarray
-        an 1D array containing the discrete time values
-    params : parameters dataclass
-        the parameters of the run
-    Returns
-    -------
-    numpy.ndarray
-        a 2D array with the two vector field values, velocity as first column and acceleration as second, for the given input x and t
+    Args:
+        x (numpy.ndarray): A 2D array containing the displacement in the first column and the velocity in the second one
+        t (numpy.ndarray): An 1D array containing the discrete time values
+        params (Config): The parameters of the run
+
+    Returns:
+        numpy.ndarray: A 2D array with the two vector field values, velocity as first column and acceleration as second,
+                       for the given input x and t
     """
 
     if params.physics.friction_model == "C":
@@ -103,7 +91,7 @@ def generate_data(
         params (Parameters): The parameters of the run, which define the system and its equations.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray]:
+        tuple[np.ndarray, np.ndarray]:
             - A 1D numpy array with the discrete time instances.
             - A 2D numpy array with the ground truth data, where the first column represents displacements and the second column represents velocities.
     """

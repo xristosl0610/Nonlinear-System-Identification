@@ -4,7 +4,6 @@ import numpy as np
 import torch_optimizer as optim_all
 from src.config_data_class import Config
 from src.physics import apply_known_physics
-from typing import Tuple
 
 
 class CoeffsDictionary(T.nn.Module):
@@ -175,10 +174,7 @@ def apply_rk4_SparseId_known_forcing(x: T.tensor,
     return x + (1 / 6) * (k1 + 2 * k2 + 2 * k3 + k4) * timesteps
 
 
-def scale_torch(
-    unscaled_tensor: T.Tensor,
-    params: Config
-) -> T.Tensor:
+def scale_torch(unscaled_tensor: T.Tensor, params: Config) -> T.Tensor:
     """
     Applies standard scaling to a torch tensor.
 
@@ -215,20 +211,14 @@ def learn_sparse_model(
         lr_reduction (int, optional): The value that the learning rate is divided by in each training batch. Defaults to 10.
 
     Returns:
-        Tuple[CoeffsDictionary, np.ndarray]:
+        tuple[CoeffsDictionary, np.ndarray]:
             - coeffs (CoeffsDictionary): The neural network with the updated/learnt coefficients as its weights.
             - loss_track (np.ndarray): A 2D array containing the loss for each training batch (row), for each epoch (column).
     """
-    # Define optimizer
-    opt_func = optim_all.RAdam(
-        coeffs.parameters(), lr=params.hyperparams.lr, weight_decay=params.hyperparams.weightdecay
-    )
-    # Define loss function
+    opt_func = optim_all.RAdam(coeffs.parameters(), lr=params.hyperparams.lr, weight_decay=params.hyperparams.weightdecay)
     criteria = T.nn.MSELoss()
-    # pre-allocate memory for loss_fuction
     loss_track = np.zeros((params.hyperparams.num_iter, params.hyperparams.num_epochs))
 
-    # Training
     for p in range(params.hyperparams.num_iter):
         for g in range(params.hyperparams.num_epochs):
             coeffs.train()
@@ -240,13 +230,11 @@ def learn_sparse_model(
 
             timesteps_i = T.tensor(np.diff(times, axis=0)).float()
 
-            # One forward step predictions
-            y_pred = apply_rk4_SparseId_known_forcing(train_set[:-1], coeffs, times[:-1], f[:-1], f_m, f[1:], timesteps=timesteps_i,
-                                                      params=params)
+            y_pred = apply_rk4_SparseId_known_forcing(train_set[:-1], coeffs, times[:-1], f[:-1], f_m, f[1:],
+                                                      timesteps=timesteps_i, params=params)
 
-            # One backward step predictions
-            y_pred_back = apply_rk4_SparseId_known_forcing(train_set[1:], coeffs, times[1:], f[1:], f_m, f[:-1], timesteps=-timesteps_i,
-                                                           params=params)
+            y_pred_back = apply_rk4_SparseId_known_forcing(train_set[1:], coeffs, times[1:], f[1:], f_m, f[:-1],
+                                                           timesteps=-timesteps_i, params=params)
 
             if params.hyperparams.scaling:
                 y_pred_scaled = scale_torch(y_pred, params)

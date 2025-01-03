@@ -1,46 +1,31 @@
-import os
 import numpy as np
 import torch as T
-from src.config_data_class import Config, update_params_from_toml
-from src.physics import calculate_jonswap_excitation, apply_forcing, generate_data, contaminate_measurements
-from src.phi_sindy import apply_features, CoeffsDictionary, learn_sparse_model, print_learnt_equation
-from src.plotting import plot_jonswap_excitation
 
+from src import DATADIR
+from src.config_data_class import Config, update_params_from_toml
+from src.phi_sindy import apply_features, CoeffsDictionary, learn_sparse_model, print_learnt_equation
+from src.physics import calculate_jonswap_excitation, apply_forcing, generate_data, contaminate_measurements
 
 if __name__ == "__main__":
 
-    # CONSTANTS
-    print(os.getcwd())
-    CONFIG_OVERWRITE = os.path.join(os.getcwd(), 'src', 'config_overwrite.toml')
+    CONFIG_OVERWRITE = DATADIR / 'config_overwrite.toml'
 
-    # LOAD PARAMS
     params = Config()
     params = update_params_from_toml(params, CONFIG_OVERWRITE)
 
-    # RUN EXCITATION
     calculate_jonswap_excitation(params, plot_jonswap=True)
 
-    # GENERATE DATA
     ts, x_denoised = generate_data(params)
 
-    forcing = apply_forcing(ts, params)
-    forcing_m = apply_forcing(0.5 * (ts[:-1] + ts[1:]), params)
+    forcing = np.atleast_2d(apply_forcing(ts, params))
+    forcing_m = np.atleast_2d(apply_forcing(0.5 * (ts[:-1] + ts[1:]), params))
 
-    if len(forcing.shape) == 1:
-        forcing = np.expand_dims(forcing, axis=1)
-        forcing_m = np.expand_dims(forcing_m, axis=1)
+    x = contaminate_measurements(params, x_denoised) if params.physics.noisy_measure_flag else x_denoised
 
-    if params.physics.noisy_measure_flag:
-        x = contaminate_measurements(params, x_denoised)
-    else:
-        x = x_denoised
-
-    # LEARN SPARSE SOLUTION
     if params.hyperparams.scaling:
         params.physics.mus = T.tensor(np.mean(x, axis=0)).float().unsqueeze(0)
         params.physics.stds = T.tensor(np.std(x, axis=0)).float().unsqueeze(0)
 
-    # Learn the coefficients
     train_dset = T.tensor(x).float()
     times = T.tensor(ts).unsqueeze(1).float()
 
